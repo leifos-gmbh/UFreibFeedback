@@ -1,0 +1,48 @@
+obj_xfrf#:#Feedback
+objs_xfrf#:#Feedbacks
+obj_xfrf_duplicate#:#Kopieren
+objs_xfrf_duplicate#:#Kopiere Feedback
+obj_xfrf_select#:#Wähle Feedback
+xfrf_add#:#Feedback hinzufügen
+xfrf_new#:#Neues Feedback
+xfrf_read#:#Lesezugriff auf Feedback
+xfrf_write#:#Feedback bearbeiten
+xfrf_delete#:#Feedback löschen
+xfrf_visible#:#Feedback ist sichtbar
+xfrf_edit_permission#:#Zugriffsrecht bearbeiten
+crs_create_xfrf#:#Erstelle Test Feedback
+grp_create_xfrf#:#Erstelle Test Feedback
+fold_create_xfrf#:#Erstelle Test Feedback
+root_create_xfrf#:#Erstelle Test Feedback
+cat_create_xfrf#:#Erstelle Test Feedback
+title#:#Titel
+description#:#Beschreibung
+online#:#Online
+save#:#Speichern
+update#:#Update
+properties#:#Eigenschaften
+content#:#Inhalt
+copy#:#Kopieren
+edit#:#Bearbeiten
+export#:#Export
+set_not_attempted#:#Setze Lernfortschritt auf "Nicht Versucht"
+set_in_progress#:#Setze Lernfortschritt auf "In Bearbeitung"
+set_passed#:#Setze Lernfortschritt auf "Bestanden"
+set_failed#:#Setze Lernfortschritt auf "Nicht Bestanden"
+set_completed#:#Setze Lernfortschritt auf "Durchgeführt"
+lp_status_0#:#Nicht Versucht
+lp_status_1#:#In Bearbeitung
+lp_status_2#:#Durchgeführt
+lp_status_3#:#Nicht Bestanden
+lp_status_#:#Kein Status gesetzt.
+lp_status_info#:#Achtung, wenn Sie den Lernfortschritt ändern so wird der Lernfortschritt für diesen Benutzer bearbeitet UND alle anderen Benutzer auf "Nicht Teilgenommen" gesetzt! Mit der Lucenesuche wird dieses Objekt gefunden, wenn man nach dem Titel, der Beschreibung oder dem Begriff "Repoplugin" sucht.
+offline:#:Offline
+important#:#Wichtig
+online_status#:#Online Status
+lp_status#:#Lernfortschritt
+update_successful#:Die Änderungen wurden gespeichert.
+news_title#:#Titel (en)
+news_content#:#Inhalt (en)
+xfrf_copy#:#Feedback kopieren
+offline#:#Offline
+status#:#Status
