@@ -19,6 +19,16 @@ class ilUFreibScormRoleRepo
     protected $rbacreview;
 
     /**
+     * @var \ilDBInterface
+     */
+    protected $db;
+
+    /**
+     * @var ilRbacAdmin
+     */
+    protected $rbacadmin;
+
+    /**
      * Constructor
      */
     public function __construct()
@@ -27,6 +37,8 @@ class ilUFreibScormRoleRepo
 
         $this->tree = $DIC->repositoryTree();
         $this->rbacreview = $DIC->rbac()->review();
+        $this->rbacadmin = $DIC->rbac()->admin();
+        $this->db = $DIC->database();
     }
 
     /**
@@ -70,6 +82,23 @@ class ilUFreibScormRoleRepo
             }
         }
         return $roles;
+    }
+
+    public function assignUserToFollowUpRole($user_id, $feedb_ref_id) {
+        $db = $this->db;
+
+        $feedb_obj_id = ilObject::_lookupObjId($feedb_ref_id);
+
+        $set = $db->queryF(
+            "SELECT target_role_id FROM rep_robj_xfrf_data " .
+            " WHERE id = %s ",
+            ["integer"],
+            [$feedb_obj_id]
+        );
+        $rec = $db->fetchAssoc($set);
+        if ($rec["target_role_id"] > 0) {
+            $this->rbacadmin->assignUser($rec["target_role_id"], $user_id);
+        }
     }
 
 }

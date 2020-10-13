@@ -243,6 +243,7 @@ class ilObjUFreibFeedbackGUI extends ilObjectPluginGUI
 
     public function showFeedbackForm()
     {
+        $this->tabs->activateTab("feedbacks");
         $form = $this->initFeedbackForm();
         $this->tpl->setContent($form->getHTML());
     }
@@ -273,7 +274,7 @@ class ilObjUFreibFeedbackGUI extends ilObjectPluginGUI
 
         // save and cancel commands
         $form->addCommandButton("sendMessage", $lng->txt("send"));
-        $form->addCommandButton("cancelSave", $lng->txt("cancel"));
+        $form->addCommandButton("showFeedbacks", $lng->txt("cancel"));
 
         $form->setTitle($this->plugin->txt("feedback"));
         $form->setFormAction($ctrl->getFormAction($this));
@@ -302,7 +303,7 @@ class ilObjUFreibFeedbackGUI extends ilObjectPluginGUI
             "",
             ilUtil::securePlainString($_POST['subject']),
             $sanitizedMessage,
-            false,
+            [],
             null
         );
         if (!$errors) {
@@ -310,7 +311,7 @@ class ilObjUFreibFeedbackGUI extends ilObjectPluginGUI
 
             $this->plugin->includeClass("class.ilUFreibFeedbackRepo.php");
             $feedback_repo = new ilUFreibFeedbackRepo();
-            $feedback_repo->saveFeedback($this->object->getScormRefId(), (int) $_GET["recipient"]);
+            $feedback_repo->saveFeedback($this->object->getRefId(), (int) $_GET["recipient"]);
         }
         $ctrl->redirect($this, "showFeedbacks");
     }

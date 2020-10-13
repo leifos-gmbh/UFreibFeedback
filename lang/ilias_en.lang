@@ -46,3 +46,12 @@ news_content#:#Content (en)
 xfrf_copy#:#Copy Feedback
 offline#:#Offline
 status#:#Status
+feedbacks#:#Feedbacks
+feedback#:#Feedback
+send_feedback#:#Give Feedback
+recipient#:#Recipient
+subject#:#Subject
+message#:#Message
+scorm_object#:#SCORM Object
+target_role#:#Target Role
+target_role_info#:#Role will be assigned to users once they read the first feedback.

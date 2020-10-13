@@ -35,6 +35,16 @@ class ilUFreibFeedbackTableGUI extends ilTable2GUI
     protected $ui;
 
     /**
+     * @var ilUFreibFeedbackRepo
+     */
+    protected $feedback_repo;
+
+    /**
+     * @var \ilObjUser
+     */
+    protected $user;
+
+    /**
      * Constructor
      */
     function __construct($a_parent_obj, $a_parent_cmd, $scorm_ref_id, $plugin)
@@ -47,6 +57,10 @@ class ilUFreibFeedbackTableGUI extends ilTable2GUI
         $this->plugin = $plugin;
         $this->scorm_ref_id = $scorm_ref_id;
         $this->ui = $DIC->ui();
+        $this->user = $DIC->user();
+
+        $this->plugin->includeClass("class.ilUFreibFeedbackRepo.php");
+        $this->feedback_repo = new ilUFreibFeedbackRepo();
 
         $this->lng->loadLanguageModule("trac");
 
@@ -63,8 +77,8 @@ class ilUFreibFeedbackTableGUI extends ilTable2GUI
         $this->setFormAction($this->ctrl->getFormAction($a_parent_obj));
         $this->setRowTemplate($this->plugin->getDirectory()."/templates/tpl.feedback_row.html");
 
-        $this->addMultiCommand("", $this->lng->txt(""));
-        $this->addCommandButton("", $this->lng->txt(""));
+        //$this->addMultiCommand("", $this->lng->txt(""));
+        //$this->addCommandButton("", $this->lng->txt(""));
     }
 
     /**
@@ -73,8 +87,7 @@ class ilUFreibFeedbackTableGUI extends ilTable2GUI
      */
     protected function getItems()
     {
-        $this->plugin->includeClass("class.ilUFreibFeedbackRepo.php");
-        $feedback_repo = new ilUFreibFeedbackRepo();
+        $feedback_repo = $this->feedback_repo;
 
         return $feedback_repo->getScormFeedbackUsers($this->scorm_ref_id);
     }
@@ -88,6 +101,26 @@ class ilUFreibFeedbackTableGUI extends ilTable2GUI
         $ctrl = $this->ctrl;
         $lng = $this->lng;
         $ui = $this->ui;
+        $feedback_repo = $this->feedback_repo;
+
+        // list feedbacks
+        ilDatePresentation::setUseRelativeDates(false);
+        foreach ($feedback_repo->getFeedbacksForUser($a_set["usr_id"], $this->parent_obj->object->getRefId()) as $f) {
+            $send_time = $f["send_time"]
+                ? ilDatePresentation::formatDate(new ilDateTime($f["send_time"], IL_CAL_DATETIME))
+                : $this->plugin->txt("mail_deleted");
+            $feedback = $send_time.", ".$f["sender_name"];
+            if (($f["sender_id"] == $this->user->getId()) && $f["mail_id"]) {
+                $ctrl->setParameterByClass("ilmailfoldergui", "mail_id", $f["mail_id"]);
+                $link = $ui->factory()->link()->standard($feedback,
+                    $ctrl->getLinkTargetByClass(["ilmailgui", "ilmailfoldergui"], "showMail"));
+                $feedback = $ui->renderer()->render($link);
+            }
+            $tpl->setCurrentBlock("feedback");
+            $tpl->setVariable("FEEDBACK", $feedback);
+            $tpl->parseCurrentBlock();
+        }
+
 
         $tpl->setVariable("USER", $a_set["lastname"].", ".$a_set["firstname"]);
 
@@ -110,8 +143,7 @@ class ilUFreibFeedbackTableGUI extends ilTable2GUI
         }
 
         $tpl->setVariable("STATUS", $status);
-
-        $ctrl->setParameter($this->parent_obj, "recipient", $a_set["user_id"]);
+        $ctrl->setParameter($this->parent_obj, "recipient", $a_set["usr_id"]);
         $link = $ui->factory()->link()->standard(
             $this->plugin->txt("send_feedback"),
             $ctrl->getLinkTarget($this->parent_obj, "showFeedbackForm")

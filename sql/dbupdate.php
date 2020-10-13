@@ -63,3 +63,19 @@ if (!$ilDB->tableColumnExists('rep_robj_xfrf_feedback', 'recipient_id')) {
     ));
 }
 ?>
+<#5>
+<?php
+if (!$ilDB->tableColumnExists('rep_robj_xfrf_feedback', 'recipient_mail_id')) {
+    $ilDB->addTableColumn('rep_robj_xfrf_feedback', 'recipient_mail_id', array(
+        'type' => 'integer',
+        'notnull' => false,
+        'length' => 4,
+        'default' => 0
+    ));
+}
+?>
+<#6>
+<?php
+    $ilDB->renameTableColumn('rep_robj_xfrf_feedback', "scorm_ref_id", 'feedb_ref_id');
+?>
+

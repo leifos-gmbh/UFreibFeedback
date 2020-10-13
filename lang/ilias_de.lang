@@ -46,3 +46,12 @@ news_content#:#Inhalt (en)
 xfrf_copy#:#Feedback kopieren
 offline#:#Offline
 status#:#Status
+feedbacks#:#Feedbacks
+feedback#:#Feedback
+send_feedback#:#Feedback geben
+recipient#:#Empfänger
+subject#:#Thema
+message#:#Mitteilung
+scorm_object#:#SCORM-Objekt
+target_role#:#Ziel-Rolle
+target_role_info#:#Diese Rolle wird zugewiesen, sobald ein Benutzer das erste Feedback liest. Bitte wählen und speichern Sie zunächst das SCORM-Objekt um eine Rollenauswahl des entsprechenden Kurses zu erhalten.
