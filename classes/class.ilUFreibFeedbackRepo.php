@@ -124,4 +124,31 @@ class ilUFreibFeedbackRepo
         }
         return $feedbacks;
     }
+
+    public function getAccessSinceTS($sco_ref_id, $user_id) {
+        $db = $this->db;
+
+        $set = $db->queryF("SELECT * FROM ufreibpsy_access_store " .
+            " WHERE user_id = %s AND scorm_ref_id = %s",
+            ["integer", "integer"],
+            [$user_id, $sco_ref_id]
+        );
+        $rec = $db->fetchAssoc($set);
+
+        return $rec["access_granted_ts"];
+    }
+
+    public function getReminderSentTS($sco_ref_id, $user_id) {
+        $db = $this->db;
+
+        $set = $db->queryF("SELECT * FROM ufreibpsy_access_store " .
+            " WHERE user_id = %s AND scorm_ref_id = %s",
+            ["integer", "integer"],
+            [$user_id, $sco_ref_id]
+        );
+        $rec = $db->fetchAssoc($set);
+
+        return $rec["reminder_sent_ts"];
+    }
+
 }

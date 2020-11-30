@@ -55,3 +55,5 @@ message#:#Message
 scorm_object#:#SCORM Object
 target_role#:#Target Role
 target_role_info#:#Role will be assigned to users once they read the first feedback.
+access_since#:#Access since
+reminder_sent#:#Reminder sent

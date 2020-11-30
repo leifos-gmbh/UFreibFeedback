@@ -70,6 +70,8 @@ class ilUFreibFeedbackTableGUI extends ilTable2GUI
         $this->setTitle($this->lng->txt(""));
 
         $this->addColumn($this->lng->txt("name"), "lastname");
+        $this->addColumn($this->plugin->txt("access_since"));
+        $this->addColumn($this->plugin->txt("reminder_sent"));
         $this->addColumn($this->lng->txt("status"), "status");
         $this->addColumn($this->plugin->txt("feedback"));
         $this->addColumn($this->lng->txt("actions"));
@@ -122,7 +124,7 @@ class ilUFreibFeedbackTableGUI extends ilTable2GUI
         }
 
 
-        $tpl->setVariable("USER", $a_set["lastname"].", ".$a_set["firstname"]);
+        $tpl->setVariable("USER", $a_set["lastname"].", ".$a_set["firstname"]. " [".$a_set["login"]."]");
 
         switch ($a_set["status"]) {
             case ilLPStatus::LP_STATUS_NOT_ATTEMPTED_NUM:
@@ -148,6 +150,22 @@ class ilUFreibFeedbackTableGUI extends ilTable2GUI
             $this->plugin->txt("send_feedback"),
             $ctrl->getLinkTarget($this->parent_obj, "showFeedbackForm")
         );
+
+        // access since
+        $access_since = $feedback_repo->getAccessSinceTS($this->scorm_ref_id, $a_set["usr_id"]);
+        if ($access_since > 0) {
+            ilDatePresentation::setUseRelativeDates(false);
+
+            $tpl->setVariable("ACCESS", ilDatePresentation::formatDate(new ilDateTime($access_since, IL_CAL_UNIX)));
+        }
+
+        // reminder sent
+        $reminder_sent = $feedback_repo->getReminderSentTS($this->scorm_ref_id, $a_set["usr_id"]);
+        if ($reminder_sent > 0) {
+            ilDatePresentation::setUseRelativeDates(false);
+
+            $tpl->setVariable("REMINDER", ilDatePresentation::formatDate(new ilDateTime($reminder_sent, IL_CAL_UNIX)));
+        }
 
         $tpl->setVariable("ACTION", $ui->renderer()->render($link));
     }
