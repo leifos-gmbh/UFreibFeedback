@@ -20,6 +20,11 @@ class ilObjUFreibFeedbackGUI extends ilObjectPluginGUI
     /** @var  ilTemplate */
     public $tpl;
 
+    /** @var  ilToolbarGUI */
+    protected $toolbar;
+
+    const COACH_FIELD_NAME = "E-Coaches";
+
     /**
      * Initialisation
      */
@@ -32,11 +37,12 @@ class ilObjUFreibFeedbackGUI extends ilObjectPluginGUI
         $this->tabs = $DIC->tabs();
         $this->tpl = $DIC->ui()->mainTemplate();
         $this->user = $DIC->user();
+        $this->toolbar = $DIC->toolbar();
 
         $this->umail = new ilFormatMail($this->user->getId());
         $this->purifier = new ilMailBodyPurifier();
 
-        $this->ctrl->saveParameter($this, "recipient");
+        $this->ctrl->saveParameter($this, ["recipient", "mode"]);
     }
 
     /**
@@ -224,15 +230,68 @@ class ilObjUFreibFeedbackGUI extends ilObjectPluginGUI
 
     protected function showFeedbacks()
     {
+        $toolbar = $this->toolbar;
+
+        $this->ctrl->setParameter($this, "mode", "all");
+        $toolbar->addButton(
+            $this->plugin->txt("all_students"),
+            $this->ctrl->getLinkTarget($this, "showFeedbacks")
+        );
+        $this->ctrl->setParameter($this, "mode", "my");
+        $toolbar->addButton(
+            $this->plugin->txt("my_students"),
+            $this->ctrl->getLinkTarget($this, "showFeedbacks")
+        );
+        $this->ctrl->setParameter($this, "mode", $_GET["mode"]);
+
         $this->tabs->activateTab("feedbacks");
 
         $this->plugin->includeClass("class.ilUFreibFeedbackTableGUI.php");
         $table_gui = new ilUFreibFeedbackTableGUI($this, "showFeedbacks",
-            $this->object->getScormRefId(), $this->plugin);
+            $this->object->getScormRefId(), $this->plugin, ($_GET["mode"] == "my"));
 
         $this->tpl->setContent($table_gui->getHTML());
     }
 
+    /**
+     *
+     * @param
+     * @return array
+     */
+    public function getCoaches($user_id)
+    {
+        $user = new ilObjUser($user_id);
+
+        $udf_userdata = $user->getUserDefinedData();
+
+        $userDefinedFields = ilUserDefinedFields::_getInstance();
+        $udf_definitions = $userDefinedFields->getDefinitions();
+
+        $coaches = array();
+
+        if(!empty($udf_definitions)) {
+
+            foreach ($udf_definitions as $udf_key => $udf_definition) {
+                if ($udf_definition["field_name"] === self::COACH_FIELD_NAME) {
+                    $udf_userdata = $udf_userdata["f_" . $udf_key];
+                }
+            }
+
+            $e_coaches = [];
+
+            if ($udf_userdata) {
+                $e_coaches = explode(",", $udf_userdata);
+            }
+
+            foreach ($e_coaches as $coach_name) {
+                $coach_id = ilObjUser::_lookupId(trim($coach_name));
+
+                $coaches[] = $coach_id;
+            }
+        }
+
+        return $coaches;
+    }
 
     /**
      * We need this method if we can't access the tabs otherwise...
@@ -242,10 +301,12 @@ class ilObjUFreibFeedbackGUI extends ilObjectPluginGUI
          $this->tabs->activateTab($active);
     }
 
-    public function showFeedbackForm()
+    public function showFeedbackForm($form = null)
     {
         $this->tabs->activateTab("feedbacks");
-        $form = $this->initFeedbackForm();
+        $form = (!is_null($form))
+            ? $form
+            : $this->initFeedbackForm();
         $this->tpl->setContent($form->getHTML());
     }
 
@@ -267,10 +328,12 @@ class ilObjUFreibFeedbackGUI extends ilObjectPluginGUI
 
         // text input
         $ti = new ilTextInputGUI($this->plugin->txt("subject"), "subject");
+        $ti->setRequired(true);
         $form->addItem($ti);
 
         // message
         $ta = new ilTextAreaInputGUI($this->plugin->txt("message"), "message");
+        $ta->setRequired(true);
         $ta->setRows(7);
         $form->addItem($ta);
 
@@ -287,45 +350,54 @@ class ilObjUFreibFeedbackGUI extends ilObjectPluginGUI
     public function sendMessage()
     {
         $ctrl = $this->ctrl;
-        $message = (string) $_POST['message'];
 
-        $mailBody = new ilMailBody($message, $this->purifier);
+        $form = $this->initFeedbackForm();
 
-        $sanitizedMessage = $mailBody->getContent();
+        if ($form->checkInput()) {
 
-        $mailer = $this->umail
-            ->withContextId('')
-            ->withContextParameters([]);
+            $message = (string) $_POST['message'];
 
-        $mailer->setSaveInSentbox(true);
+            $mailBody = new ilMailBody($message, $this->purifier);
 
-        // ensure that mails are always sent internally only
-        $db = $this->db;
-        $db->update("mail_options", [
-            "incoming_type" => ["integer", 0]
-        ], [    // where
-                'user_id' => ['integer', (int) $_GET["recipient"]]
-            ]
-        );
+            $sanitizedMessage = $mailBody->getContent();
 
-        $errors = $mailer->enqueue(
-            ilUtil::securePlainString(ilObjUser::_lookupLogin((int) $_GET["recipient"])),
-            "",
-            "",
-            ilUtil::securePlainString($_POST['subject']),
-            $sanitizedMessage,
-            [],
-            null
-        );
-        if (!$errors) {
-            $mailer->savePostData($this->user->getId(), array(), "", "", "", "", "", "", "", "");
+            $mailer = $this->umail
+                ->withContextId('')
+                ->withContextParameters([]);
 
-            $this->plugin->includeClass("class.ilUFreibFeedbackRepo.php");
-            $feedback_repo = new ilUFreibFeedbackRepo();
-            $feedback_repo->saveFeedback($this->object->getRefId(), (int) $_GET["recipient"]);
-            $this->triggerFeedbackEvent((int) $_GET["recipient"]);
+            $mailer->setSaveInSentbox(true);
+
+            // ensure that mails are always sent internally only
+            $db = $this->db;
+            $db->update("mail_options", [
+                "incoming_type" => ["integer", 0]
+            ], [    // where
+                    'user_id' => ['integer', (int) $_GET["recipient"]]
+                ]
+            );
+
+            $errors = $mailer->enqueue(
+                ilUtil::securePlainString(ilObjUser::_lookupLogin((int) $_GET["recipient"])),
+                "",
+                "",
+                ilUtil::securePlainString($_POST['subject']),
+                $sanitizedMessage,
+                [],
+                null
+            );
+            if (!$errors) {
+                $mailer->savePostData($this->user->getId(), array(), "", "", "", "", "", "", "", "");
+
+                $this->plugin->includeClass("class.ilUFreibFeedbackRepo.php");
+                $feedback_repo = new ilUFreibFeedbackRepo();
+                $feedback_repo->saveFeedback($this->object->getRefId(), (int) $_GET["recipient"]);
+                $this->triggerFeedbackEvent((int) $_GET["recipient"]);
+            }
+            $ctrl->redirect($this, "showFeedbacks");
+        } else {
+            $form->setValuesByPost();
+            $this->showFeedbackForm($form);
         }
-        $ctrl->redirect($this, "showFeedbacks");
     }
 
     protected function triggerFeedbackEvent($student_id) {

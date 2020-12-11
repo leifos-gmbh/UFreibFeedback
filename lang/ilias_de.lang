@@ -40,7 +40,7 @@ offline:#:Offline
 important#:#Wichtig
 online_status#:#Online Status
 lp_status#:#Lernfortschritt
-update_successful#:Die Änderungen wurden gespeichert.
+update_successful#:#Die Änderungen wurden gespeichert.
 news_title#:#Titel (en)
 news_content#:#Inhalt (en)
 xfrf_copy#:#Feedback kopieren
@@ -57,3 +57,5 @@ target_role#:#Ziel-Rolle
 target_role_info#:#Diese Rolle wird zugewiesen, sobald ein Benutzer das erste Feedback liest. Bitte wählen und speichern Sie zunächst das SCORM-Objekt um eine Rollenauswahl des entsprechenden Kurses zu erhalten.
 access_since#:#Zugriff seit
 reminder_sent#:#Erinnerung gesendet
+my_students#:#Meine Lerner
+all_students#:#Alle Lerner

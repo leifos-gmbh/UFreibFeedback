@@ -47,7 +47,7 @@ class ilUFreibFeedbackTableGUI extends ilTable2GUI
     /**
      * Constructor
      */
-    function __construct($a_parent_obj, $a_parent_cmd, $scorm_ref_id, $plugin)
+    function __construct($a_parent_obj, $a_parent_cmd, $scorm_ref_id, $plugin, $only_my_students)
     {
         global $DIC;
 
@@ -58,6 +58,7 @@ class ilUFreibFeedbackTableGUI extends ilTable2GUI
         $this->scorm_ref_id = $scorm_ref_id;
         $this->ui = $DIC->ui();
         $this->user = $DIC->user();
+        $this->only_my_students = $only_my_students;
 
         $this->plugin->includeClass("class.ilUFreibFeedbackRepo.php");
         $this->feedback_repo = new ilUFreibFeedbackRepo();
@@ -91,7 +92,17 @@ class ilUFreibFeedbackTableGUI extends ilTable2GUI
     {
         $feedback_repo = $this->feedback_repo;
 
-        return $feedback_repo->getScormFeedbackUsers($this->scorm_ref_id);
+        $data = $feedback_repo->getScormFeedbackUsers($this->scorm_ref_id);
+
+        $gui = $this->getParentObject();
+        $user_id = $this->user->getId();
+        if ($this->only_my_students) {
+            $data = array_filter($data, function ($i) use ($gui, $user_id) {
+                return in_array($user_id, $gui->getCoaches($i["usr_id"]));
+            });
+        }
+
+        return $data;
     }
 
     /**
