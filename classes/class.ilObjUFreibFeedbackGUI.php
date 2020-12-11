@@ -27,6 +27,7 @@ class ilObjUFreibFeedbackGUI extends ilObjectPluginGUI
     {
         global $DIC;
 
+        $this->db = $DIC->database();
         $this->ctrl = $DIC->ctrl();
         $this->tabs = $DIC->tabs();
         $this->tpl = $DIC->ui()->mainTemplate();
@@ -270,6 +271,7 @@ class ilObjUFreibFeedbackGUI extends ilObjectPluginGUI
 
         // message
         $ta = new ilTextAreaInputGUI($this->plugin->txt("message"), "message");
+        $ta->setRows(7);
         $form->addItem($ta);
 
         // save and cancel commands
@@ -297,6 +299,15 @@ class ilObjUFreibFeedbackGUI extends ilObjectPluginGUI
 
         $mailer->setSaveInSentbox(true);
 
+        // ensure that mails are always sent internally only
+        $db = $this->db;
+        $db->update("mail_options", [
+            "incoming_type" => ["integer", 0]
+        ], [    // where
+                'user_id' => ['integer', (int) $_GET["recipient"]]
+            ]
+        );
+
         $errors = $mailer->enqueue(
             ilUtil::securePlainString(ilObjUser::_lookupLogin((int) $_GET["recipient"])),
             "",
@@ -312,8 +323,18 @@ class ilObjUFreibFeedbackGUI extends ilObjectPluginGUI
             $this->plugin->includeClass("class.ilUFreibFeedbackRepo.php");
             $feedback_repo = new ilUFreibFeedbackRepo();
             $feedback_repo->saveFeedback($this->object->getRefId(), (int) $_GET["recipient"]);
+            $this->triggerFeedbackEvent((int) $_GET["recipient"]);
         }
         $ctrl->redirect($this, "showFeedbacks");
+    }
+
+    protected function triggerFeedbackEvent($student_id) {
+        global $DIC;
+        $app_event_handler = $DIC['ilAppEventHandler'];
+        $app_event_handler->raise('Services/Mail', 'freibFeedbackSent', [
+            'student_id' => $student_id,
+            'scorm_ref_id' => $this->object->getScormRefId()
+        ]);
     }
 
 }
